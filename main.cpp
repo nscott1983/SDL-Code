@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include <string>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "LTexture.h"
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -16,7 +16,11 @@ SDL_Texture* loadTexture(std::string path);
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
-SDL_Texture* gTexture = NULL;
+LTexture gFooTexture;
+LTexture gBackgroundTexture;
+
+SDL_Rect gSpriteClips[4];
+LTexture gSpriteSheetTexture;
 
 int main(int argc, char* args[]) {
 	if(!init()) {
@@ -33,29 +37,13 @@ int main(int argc, char* args[]) {
 						quit = true;
 					} 
 				}
-				SDL_Rect topLeftViewport;
-				topLeftViewport.x = 0;
-				topLeftViewport.y = 0;
-				topLeftViewport.w = SCREEN_WIDTH / 2;
-				topLeftViewport.h = SCREEN_HEIGHT / 2;
-				SDL_RenderSetViewport(gRenderer, &topLeftViewport);
-				SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
+				SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+				SDL_RenderClear(gRenderer);
 
-				SDL_Rect topRightViewport;
-				topRightViewport.x = SCREEN_WIDTH / 2;
-				topRightViewport.y = 0;
-				topRightViewport.w = SCREEN_WIDTH / 2;
-				topRightViewport.h = SCREEN_HEIGHT / 2;
-				SDL_RenderSetViewport(gRenderer, &topRightViewport);
-				SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
-
-				SDL_Rect bottomViewport;
-				bottomViewport.x = 0;
-				bottomViewport.y = SCREEN_HEIGHT / 2;
-				bottomViewport.w = SCREEN_WIDTH;
-				bottomViewport.h = SCREEN_HEIGHT / 2;
-				SDL_RenderSetViewport(gRenderer, &bottomViewport);
-				SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
+				gSpriteSheetTexture.render(0, 0, &gSpriteClips[0]);
+				gSpriteSheetTexture.render(SCREEN_WIDTH - gSpriteClips[0].w, 0, &gSpriteClips[1]);
+				gSpriteSheetTexture.render(0, SCREEN_HEIGHT - gSpriteClips[2].h, &gSpriteClips[2]);
+				gSpriteSheetTexture.render(SCREEN_WIDTH - gSpriteClips[3].w, SCREEN_HEIGHT - gSpriteClips[3].h, &gSpriteClips[3]);
 
 				SDL_RenderPresent(gRenderer);
 			}
@@ -98,18 +86,41 @@ bool init() {
 bool loadMedia() {
 	bool success = true;
 
-	gTexture = loadTexture("texture.png");
-	if (gTexture == NULL) {
-		printf("Failed to load texture\n");
+	gSpriteSheetTexture.setRenderer(gRenderer);
+	if (!gSpriteSheetTexture.loadFromFile("dots.png")){
+		printf("Failed to load dots texture image!\n");
 		success = false;
-	}
+	} else {
+		//Set top left sprite
+        gSpriteClips[ 0 ].x =   0;
+        gSpriteClips[ 0 ].y =   0;
+        gSpriteClips[ 0 ].w = 100;
+        gSpriteClips[ 0 ].h = 100;
 
+        //Set top right sprite
+        gSpriteClips[ 1 ].x = 100;
+        gSpriteClips[ 1 ].y =   0;
+        gSpriteClips[ 1 ].w = 100;
+        gSpriteClips[ 1 ].h = 100;
+        
+        //Set bottom left sprite
+        gSpriteClips[ 2 ].x =   0;
+        gSpriteClips[ 2 ].y = 100;
+        gSpriteClips[ 2 ].w = 100;
+        gSpriteClips[ 2 ].h = 100;
+
+        //Set bottom right sprite
+        gSpriteClips[ 3 ].x = 100;
+        gSpriteClips[ 3 ].y = 100;
+        gSpriteClips[ 3 ].w = 100;
+        gSpriteClips[ 3 ].h = 100;
+	}
 	return success;
 }
 
 void close() {
-	SDL_DestroyTexture(gTexture);
-	gTexture = NULL;
+	gFooTexture.free();
+	gBackgroundTexture.free();
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(gWindow);
 	gWindow = NULL;
