@@ -18,6 +18,7 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 LTexture gFooTexture;
 LTexture gBackgroundTexture;
+LTexture gModulatedTexture;
 
 SDL_Rect gSpriteClips[4];
 LTexture gSpriteSheetTexture;
@@ -31,20 +32,46 @@ int main(int argc, char* args[]) {
 		} else {
 			bool quit = false;
 			SDL_Event e;
+			Uint8 a = 255;
 			while(!quit) {
 				while(SDL_PollEvent(&e) != 0) {
 					if (e.type == SDL_QUIT) {
 						quit = true;
-					} 
+					} else if (e.type == SDL_KEYDOWN) {
+						if( e.key.keysym.sym == SDLK_w )
+                        {
+                            //Cap if over 255
+                            if( a + 32 > 255 )
+                            {
+                                a = 255;
+                            }
+                            //Increment otherwise
+                            else
+                            {
+                                a += 32;
+                            }
+                        }
+                        //Decrease alpha on s
+                        else if( e.key.keysym.sym == SDLK_s )
+                        {
+                            //Cap if below 0
+                            if( a - 32 < 0 )
+                            {
+                                a = 0;
+                            }
+                            //Decrement otherwise
+                            else
+                            {
+                                a -= 32;
+                            }
+                        }
+					}
 				}
 				SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 				SDL_RenderClear(gRenderer);
-
-				gSpriteSheetTexture.render(0, 0, &gSpriteClips[0]);
-				gSpriteSheetTexture.render(SCREEN_WIDTH - gSpriteClips[0].w, 0, &gSpriteClips[1]);
-				gSpriteSheetTexture.render(0, SCREEN_HEIGHT - gSpriteClips[2].h, &gSpriteClips[2]);
-				gSpriteSheetTexture.render(SCREEN_WIDTH - gSpriteClips[3].w, SCREEN_HEIGHT - gSpriteClips[3].h, &gSpriteClips[3]);
-
+				gBackgroundTexture.render(0, 0);
+				gModulatedTexture.setAlpha(a);
+				gModulatedTexture.render(0, 0);
 				SDL_RenderPresent(gRenderer);
 			}
 		}
@@ -86,34 +113,17 @@ bool init() {
 bool loadMedia() {
 	bool success = true;
 
-	gSpriteSheetTexture.setRenderer(gRenderer);
-	if (!gSpriteSheetTexture.loadFromFile("dots.png")){
-		printf("Failed to load dots texture image!\n");
+	gModulatedTexture.setRenderer(gRenderer);
+	if (!gModulatedTexture.loadFromFile("fadeout.png")){
+		printf("Failed to load fadeout texture image!\n");
 		success = false;
 	} else {
-		//Set top left sprite
-        gSpriteClips[ 0 ].x =   0;
-        gSpriteClips[ 0 ].y =   0;
-        gSpriteClips[ 0 ].w = 100;
-        gSpriteClips[ 0 ].h = 100;
+		gModulatedTexture.setBlendMode(SDL_BLENDMODE_BLEND);
+	}
 
-        //Set top right sprite
-        gSpriteClips[ 1 ].x = 100;
-        gSpriteClips[ 1 ].y =   0;
-        gSpriteClips[ 1 ].w = 100;
-        gSpriteClips[ 1 ].h = 100;
-        
-        //Set bottom left sprite
-        gSpriteClips[ 2 ].x =   0;
-        gSpriteClips[ 2 ].y = 100;
-        gSpriteClips[ 2 ].w = 100;
-        gSpriteClips[ 2 ].h = 100;
-
-        //Set bottom right sprite
-        gSpriteClips[ 3 ].x = 100;
-        gSpriteClips[ 3 ].y = 100;
-        gSpriteClips[ 3 ].w = 100;
-        gSpriteClips[ 3 ].h = 100;
+	gBackgroundTexture.setRenderer(gRenderer);
+	if (!gBackgroundTexture.loadFromFile("fadein.png")) {
+		printf("Failed to load fadein texture image!\n");
 	}
 	return success;
 }
