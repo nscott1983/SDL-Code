@@ -1,19 +1,19 @@
-CXX = g++
+#OBJS specifies which files to compile as part of the project
+OBJS = main.cpp
 
-SDL_LIB = -L/usr/lib -lSDL2 -Wl,-rpath=/usr/lib
-SDL_INCLUDE = -I/usr/include
+#CC specifies which compiler we're using
+CC = g++
 
-CXXFLAGS = -Wall -c -std=c++11 $(SDL_INCLUDE)
-LDFLAGS = $(SDL_LIB)
-EXE = main
+#COMPILER_FLAGS specifies the additional compilation options we're using
+# -w suppresses all warnings
+COMPILER_FLAGS = -w
 
-all: $(EXE)
+#LINKER_FLAGS specifies the libraries we're linking against
+LINKER_FLAGS = -lSDL2 -lSDL2_image
 
-$(EXE): main.o
-	$(CXX) $< $(LDFLAGS) -o $@
+#OBJ_NAME specifies the name of our exectuable
+OBJ_NAME = game
 
-main.o: main.cpp
-	$(CXX) $(CXXFLAGS) $< -o $@
-
-clean:
-	rm *.o && rm $(EXE)
+#This is the target that compiles our executable
+all : $(OBJS)
+	$(CC) $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(OBJ_NAME)
