@@ -1,4 +1,6 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <cmath>
 #include <string>
 
 class LTexture {
@@ -6,6 +8,7 @@ class LTexture {
     LTexture();
     ~LTexture();
     bool loadFromFile(std::string path);
+    bool loadFromRenderedText(std::string textureText, SDL_Color textColor, TTF_Font* font);
     void free();
     void setColor(Uint8 red, Uint8 green, Uint8 blue);
     void setBlendMode(SDL_BlendMode blending);

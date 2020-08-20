@@ -16,13 +16,8 @@ SDL_Texture* loadTexture(std::string path);
 
 SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
-LTexture gFooTexture;
-LTexture gBackgroundTexture;
-LTexture gModulatedTexture;
-LTexture gArrowTexture;
-const int WALKING_ANIMATION_FRAMES = 4;
-SDL_Rect gSpriteClips[WALKING_ANIMATION_FRAMES];
-LTexture gSpriteSheetTexture;
+TTF_Font* gFont = NULL;
+LTexture gTextTexture;
 
 
 int main(int argc, char* args[]) {
@@ -40,34 +35,11 @@ int main(int argc, char* args[]) {
 				while(SDL_PollEvent(&e) != 0) {
 					if (e.type == SDL_QUIT) {
 						quit = true;
-					} else if (e.type == SDL_KEYDOWN) {
-						switch( e.key.keysym.sym )
-                        {
-                            case SDLK_a:
-                            degrees -= 60;
-                            break;
-                            
-                            case SDLK_d:
-                            degrees += 60;
-                            break;
-
-                            case SDLK_q:
-                            flipType = SDL_FLIP_HORIZONTAL;
-                            break;
-
-                            case SDLK_w:
-                            flipType = SDL_FLIP_NONE;
-                            break;
-
-                            case SDLK_e:
-                            flipType = SDL_FLIP_VERTICAL;
-                            break;
-                        }
 					}
 				}
 				SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 				SDL_RenderClear(gRenderer);
-				gArrowTexture.render((SCREEN_WIDTH - gArrowTexture.getWidth()) / 2, (SCREEN_HEIGHT - gArrowTexture.getHeight()) / 2, NULL, degrees, NULL, flipType);
+				gTextTexture.render((SCREEN_WIDTH - gTextTexture.getWidth()) / 2, (SCREEN_HEIGHT - gTextTexture.getHeight()) / 2);
 				SDL_RenderPresent(gRenderer);
 			}
 		}
@@ -99,6 +71,11 @@ bool init() {
 					printf("SDL_Image could not initialize! SDL_Image Error: %s\n", IMG_GetError());
 					success = false;
 				}
+
+				if (TTF_Init() == -1) {
+					printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+					success = false;
+				}
 			}
 			
 		}
@@ -108,21 +85,32 @@ bool init() {
 
 bool loadMedia() {
 	bool success = true;
-	gArrowTexture.setRenderer(gRenderer);
-	if (!gArrowTexture.loadFromFile("arrow.png")) {
-		printf("Failed to load arrow texture image!\n");
+	gFont = TTF_OpenFont("lazy.ttf", 28);
+	if (gFont == NULL) {
+		printf("Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError());
+		success = false;
+	} else {
+		SDL_Color textColor = {0, 0, 0};
+		gTextTexture.setRenderer(gRenderer);
+		if (!gTextTexture.loadFromRenderedText("The quick brown fox jumps over the lazy dog", textColor, gFont)) {
+			printf("Failed to render the text texture!");
+			success = false;
+		}
 	}
+	
 	return success;
 }
 
 void close() {
-	gFooTexture.free();
-	gBackgroundTexture.free();
+	gTextTexture.free();
+	TTF_CloseFont(gFont);
+	gFont = NULL;
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(gWindow);
 	gWindow = NULL;
 	gRenderer = NULL;
 
+	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
 }

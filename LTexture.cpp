@@ -36,6 +36,26 @@ bool LTexture::loadFromFile(std::string path) {
 
 }
 
+bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor, TTF_Font* font) {
+    free();
+
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, textureText.c_str(), textColor);
+    if (textSurface == NULL) {
+        printf("Unable to load text surface from %s! SDL_ttf error: %s\n", textureText.c_str(), TTF_GetError());
+    } else {
+        mTexture = SDL_CreateTextureFromSurface(mRenderer, textSurface);
+        if (mTexture == NULL) {
+            printf("Unable to load new texture from rendered text! SDL_Error: %s\n", SDL_GetError());
+        } else {
+            mWidth = textSurface->w;
+            mHeight = textSurface->h;
+        }
+        SDL_FreeSurface(textSurface);
+    }
+
+    return mTexture != NULL;
+}
+
 void LTexture::free() {
     if (mTexture != NULL) {
         SDL_DestroyTexture(mTexture);
